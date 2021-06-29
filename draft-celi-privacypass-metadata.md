@@ -196,14 +196,14 @@ a key rotates, this number will be increased by 1. This epoch number will
 be cryptographically bounded to the tokens by the server during the `Issue`
 phase, and stored by the client alongside with the tokens.
 
-During the redemption phase, the client will send the this stored epoch
+During the redemption phase, the client will send this stored epoch (the number `n`)
 alongside the token. The server will check if its epoch is smaller than
 the client's sent one. If it is smaller, the token is expired. If it is
 the same, the token is valid. If it is bigger, the client might be trying
 to trick the server: this attack won't work as the Verification procedure
 executed by the server will fail.
 
-The anonimity set is reduced depending on the key schedule of the server.
+The anonimity set is still reduced depending on the key schedule of the server.
 This metadata is opaque to the client but verifiable by the server.
 
 // TODO: we can also stop rotation, and invoke a server policy of
