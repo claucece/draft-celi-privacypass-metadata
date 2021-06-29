@@ -70,9 +70,15 @@ Table of Contents
 
    1.  Introduction
    2.  Conventions and Definitions
-   3.  Security Considerations
-   4.  IANA Considerations
-   5.  Normative References
+   3.  Protocol description
+     3.1.  Server setup
+     3.2.  Client setup
+     3.3.  Issuance phase
+     3.4.  Redemption phase
+   4.  Token Expiration as Token Metadata
+   5.  Security Considerations
+   6.  IANA Considerations
+   7.  Normative References
    Acknowledgments
    Author's Address
 
@@ -104,15 +110,160 @@ Table of Contents
    14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-3.  Security Considerations
+3.  Protocol description
+
+   The Privacy Pass protocol with metadata is split into two phases.
+
+   The first phase, "issuance", provides the client with unlinkable
+   tokens that can be used to initiate re-authorization with the server
+   in the future.  The second phase, "redemption", allows the client to
+   redeem a given re-authorization token with the server that it
+   interacted with during the issuance phase.  The protocol must satisfy
+   two cryptographic security requirements known as "unlinkability" and
+   "unforgeability".
+
+3.1.  Server setup
+
+   Before the protocol takes place, the server chooses a ciphersuite and
+   generates a keypair by running "(pkS, skS) = KeyGen()".  This
+   configuration must be available to all clients that interact with the
+   server (for the purpose of engaging in a Privacy Pass exchange).  We
+   assume that the server has a public (and unique) identity that the
+   client uses to retrieve this configuration.
+
+   The server can also choose the metadata that is going to be bounded
+   into the tokens, or wait for the client to determine the metadata.
+
+3.2.  Client setup
+
+   The client initialises a global storage system "store" that allows it
+   store the tokens that are received during issuance.  The storage
+   system is a map of server identifiers ("server.id") to arrays of
+   stored tokens.  We assume that the client knows the server public key
+   "pkS" ahead of time.  The client picks a value "m" of tokens to
+   receive during the issuance phase.
+
+   The client can also choose the metadata that is going to be bounded
+   into the tokens, or wait for the server to determine the metadata.
+
+3.3.  Issuance phase
+
+   The issuance phase is a two-round protocol that allows the client to
+   receive "m" anonymous authorization tokens bounded to a metadata
+   "tag" from the server.  The first round sees the server generate a
+   commitment.  The second round sees the server issue a token to the
+   client.
+
+  Client(pkS, m, tag, info)                        Server(skS, pkS)
+  ------------------------------------------------------------
+
+  commit_req = Prepare(info)
+
+                            commit_req
+                      ------------------->
+
+                        commit_resp = Commit(skS, pkS, commit_req)
+
+                            commit_resp
+                      <-------------------
+
+  cInput = Generate(m, tag, commit_resp)
+  req = cInput.req
+
+                              req
+                      ------------------->
+
+                              issueResp, tag  = Issue(pkS, skS, tag, req)
+
+                         issueResp, tag
+                      <-------------------
+
+  tokens = Process(pkS, cInput, issueResp)
+  store[server.id].push(tokens, tag)
+
+3.4.  Redemption phase
+
+   The redemption phase allows the client to anonymously reauthenticate
+   to the server, using data and metadata that it has received from a
+   previous issuance phase.
+
+     Client(info)                                Server(skS, pkS)
+     ------------------------------------------------------------
+     token, tag = store[server.id].pop()
+     req = Redeem(token, info, tag)
+
+                                  req
+                           ------------------>
+
+                                  if (dsIdx.includes(req.data)) {
+                                    raise ERR_DOUBLE_SPEND
+                                  }
+                                  resp = Verify(pkS, skS, req, tag)
+                                  if (resp.success) {
+                                    dsIdx.push(req.data)
+                                  }
+
+                                   resp
+                           <------------------
+     Output resp
+
+4.  Token Expiration as Token Metadata
+
+   One abuse of Privacy Pass not prevented by the original design is
+   what we refer to as a hoarding attack, also called a farming attack.
+   A malicious user can gather a large number of tokens by running the
+   issuance protocol as many times as possible over some period of time
+   and getting "m" amount of tokens.  Later, the malicious user can
+   redeem all the gathered tokens at once in order to render the
+   provided service unavailable in a (D)DoS attack (by, for example,
+   overwhelming a website with expensive requests).
+
+   One potential defense against this attack is to force periodic
+   rotation of the server's key as a mean to revoke tokens.
+   Nevertheless, token issuance associates all issued tokens with a
+   particular choice of key and, if a server issues tokens with many
+   keys, then this may harm the anonymity of the Client, as the
+   anonimity set gets diminished.
+
+   A solution is to use the PO-PRF construction to add metadata to the
+   issuance and redemption phases: this metadata should be associated
+   with the timestamp in which a token was issued but not explicitly use
+   this timestamp (as using an explicit timestamp could harm the
+   anonimity of the tokens as a server will be able to link the issuance
+   and redemption phases by looking at when the token was generated).
+
+   The proposed metadata to be used in this case is key rotation epochs.
+   A server will still need to rotate their keys to prevent against key-
+   compromise and credential stuffing.  Each key rotation will be
+   assigned a number "n" starting from the first generated key "0".
+   Every time that a key rotates, this number will be increased by 1.
+   This epoch number will be cryptographically bounded to the tokens by
+   the server during the "Issue" phase, and stored by the client
+   alongside with the tokens.
+
+   During the redemption phase, the client will send the this stored
+   epoch alongside the token.  The server will check if its epoch is
+   smaller than the client's sent one.  If it is smaller, the token is
+   expired.  If it is the same, the token is valid.  If it is bigger,
+   the client might be trying to trick the server: this attack won't
+   work as the Verification procedure executed by the server will fail.
+
+   The anonimity set is reduced depending on the key schedule of the
+   server.  This metadata is opaque to the client but verifiable by the
+   server.
+
+   // TODO: we can also stop rotation, and invoke a server policy of
+   rotating epochs.
+
+5.  Security Considerations
 
    TODO Security
 
-4.  IANA Considerations
+6.  IANA Considerations
 
    This document has no IANA actions.
 
-5.  Normative References
+7.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
