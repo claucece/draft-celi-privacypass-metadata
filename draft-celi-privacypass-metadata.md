@@ -27,7 +27,14 @@ informative:
 
 --- abstract
 
-TODO Abstract
+Privacy Pass is a protocol in which clients are allowed to receive
+one-time-use anonymous tokens, using an issuance protocol, that can later
+be used to anonymously authenticate themselves using a redemption protocol.
+
+Certain instantiations of it may want public metadata to be cryptographically
+bound to the issued token for different applications, such as prevention
+against hoarding attacks. This document specifies how to add this public
+metadata by using the PO-PRF construction.
 
 --- middle
 
