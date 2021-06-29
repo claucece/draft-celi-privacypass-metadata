@@ -4,8 +4,8 @@
 
 Network Working Group                                            S. Celi
 Internet-Draft                                                Cloudflare
-Intended status: Informational                              28 June 2021
-Expires: 30 December 2021
+Intended status: Informational                              29 June 2021
+Expires: 31 December 2021
 
 
                     Privacy Pass and Public Metadata
@@ -13,7 +13,16 @@ Expires: 30 December 2021
 
 Abstract
 
-   TODO Abstract
+   Privacy Pass is a protocol in which clients are allowed to receive
+   one-time-use anonymous tokens, using an issuance protocol, that can
+   later be used to anonymously authenticate themselves using a
+   redemption protocol.
+
+   Certain instantiations of it may want public metadata to be
+   cryptographically bound to the issued token for different
+   applications, such as prevention against hoarding attacks.  This
+   document specifies how to add this public metadata by using the PO-
+   PRF construction.
 
 Discussion Venues
 
@@ -41,7 +50,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 December 2021.
+   This Internet-Draft will expire on 31 December 2021.
 
 Copyright Notice
 
