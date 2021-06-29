@@ -183,21 +183,21 @@ the Client, as the anonimity set gets diminished.
 
 A solution is to use the PO-PRF construction to add metadata to the issuance
 and redemption phases: this metadata should be associated with the
-timestamp in which a token was issued but not explicitly use this
-timestamp (as using an explicit timestamp could harm the anonimity of the
+timestamp in which a token was issued but it MUST not explicitly use it:
+using an explicit timestamp could harm the anonimity of the
 tokens as a server will be able to link the issuance and redemption
-phases by looking at when the token was generated).
+phases by looking at when the token was generated and later redeemed.
 
-The proposed metadata to be used in this case is key rotation epochs.
+The proposed metadata to be used in this case is key rotation epochs (`n`).
 A server will still need to rotate their keys to prevent against
 key-compromise and credential stuffing. Each key rotation will be assigned
 a number `n` starting from the first generated key `0`. Every time that
-a key rotates, this number will be increased by 1. This epoch number will
-be cryptographically bounded to the tokens by the server during the `Issue`
-phase, and stored by the client alongside with the tokens.
-
+a key rotates, this number will be increased by 1. This epoch number `n` will
+be cryptographically bounded (added as metadata) to the tokens by the server
+during the `Issue` phase, and stored by the client alongside with the tokens.
+s
 During the redemption phase, the client will send this stored epoch (the number `n`)
-alongside the token. The server will check if its epoch is smaller than
+alongside the token. The server will check if their epoch is smaller than
 the client's sent one. If it is smaller, the token is expired. If it is
 the same, the token is valid. If it is bigger, the client might be trying
 to trick the server: this attack won't work as the Verification procedure
