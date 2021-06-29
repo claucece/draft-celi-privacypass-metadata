@@ -78,7 +78,23 @@ Table of Contents
 
 1.  Introduction
 
-   TODO Introduction
+   Certain instantiations of Privacy Pass may want public metadata to be
+   cryptographically bound to a issued token.  Several mechanisms have
+   been proposed for it as, for example, attribute-based VOPRFs
+   (ABVOPRF) and Anonymous Credentials in the realm of contact tracing.
+
+   In this work, we use PO-PRFs for adding metadata to tokens in a
+   Privacy Pass context, as it is efficient, easy to integrate into the
+   API, allows for an arbitrarily long metadata, and achieve the same
+   security properties as needed by the protocol.
+
+   We will abide in this document by the definition of public metadata
+   as defined on the architectural document of Privacy Pass: "Public
+   metadata is that which clients can observe as part of the token
+   issuance flow".  We will also determine public metadata as
+   transparent (if both the client and server know the metadata and can
+   check it for correctness) and opaque (if both the client and server
+   know the metadata but the client cannot check it for correctness).
 
 2.  Conventions and Definitions
 
